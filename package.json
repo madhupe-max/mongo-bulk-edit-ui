@@ -10,6 +10,8 @@
     "install-all": "npm install && cd client && npm install && cd ../server && npm install"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.5.0",
     "concurrently": "^8.2.0"
   },
   "dependencies": {
