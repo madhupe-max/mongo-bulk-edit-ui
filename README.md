@@ -14,6 +14,7 @@ A full-stack React application for loading, displaying, and bulk-editing MongoDB
 
 - **Node.js** (v16+)
 - **MongoDB** running locally or accessible via connection string
+- **Docker** (for local Elasticsearch + Kibana)
 - **npm** or **yarn**
 
 ## Quick Start
@@ -61,7 +62,26 @@ db.records.insertMany([
 ])
 ```
 
-### 5. Start the app
+### 5. (Optional) Start local Elasticsearch + Kibana
+
+This project includes a local observability stack in `docker-compose.observability.yml`.
+
+```bash
+# Start Elasticsearch + Kibana
+docker compose -f docker-compose.observability.yml up -d
+
+# Check container status
+docker compose -f docker-compose.observability.yml ps
+
+# Stop stack
+docker compose -f docker-compose.observability.yml down
+```
+
+Service URLs:
+- **Elasticsearch**: http://localhost:9200
+- **Kibana**: http://localhost:5601
+
+### 6. Start the app
 
 ```bash
 npm run dev
@@ -86,6 +106,7 @@ Both client and server start concurrently:
 
 ```
 mongo-bulk-edit-ui/
+├── docker-compose.observability.yml  # Local Elasticsearch + Kibana stack
 ├── client/                 # React frontend (Vite)
 │   ├── src/
 │   │   ├── App.jsx        # Main component with table & bulk edit
@@ -97,6 +118,8 @@ mongo-bulk-edit-ui/
 │   └── package.json
 ├── server/                 # Express backend
 │   ├── index.js           # API routes & MongoDB connection
+│   ├── utils/
+│   │   └── smartLogger.js # Console capture + Elasticsearch log shipping
 │   ├── .env.example       # Environment template
 │   └── package.json
 ├── package.json           # Root scripts (dev, install-all)
@@ -134,7 +157,25 @@ curl -X POST http://localhost:5000/api/records/bulk/update \
 MONGO_URI=mongodb://localhost:27017
 # OR for MongoDB Atlas:
 MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/
+
+# Smart logger to Elasticsearch (view in Kibana)
+ELASTICSEARCH_URL=http://localhost:9200
+ELASTICSEARCH_INDEX=app-logs
+ELASTICSEARCH_API_KEY=
+ELASTICSEARCH_USERNAME=
+ELASTICSEARCH_PASSWORD=
+
+# Logger tuning
+LOG_SERVICE_NAME=mongo-bulk-edit-ui-server
+LOG_CAPTURE_CONSOLE=true
+LOG_HTTP_REQUESTS=true
+LOG_FLUSH_INTERVAL_MS=2000
+LOG_BATCH_SIZE=50
+LOG_MAX_QUEUE_SIZE=1000
+LOG_REQUEST_TIMEOUT_MS=4000
 ```
+
+If `ELASTICSEARCH_URL` is set, the backend smart logger captures console logs and HTTP request logs, then sends them to Elasticsearch using the bulk API. In Kibana, create a data view for `app-logs*` (or your configured index).
 
 ## Troubleshooting
 
@@ -152,6 +193,11 @@ MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/
 
 **CORS errors**
 - Ensure `cors` middleware is enabled in server (it is by default)
+
+**Kibana or Elasticsearch not reachable**
+- Ensure Docker is running
+- Run `docker compose -f docker-compose.observability.yml ps` and verify both containers are healthy
+- Check `ELASTICSEARCH_URL` in `server/.env` points to `http://localhost:9200`
 
 ## Development Commands
 

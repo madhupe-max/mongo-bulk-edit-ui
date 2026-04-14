@@ -2,8 +2,25 @@ import express from 'express';
 import cors from 'cors';
 import { MongoClient, ObjectId } from 'mongodb';
 import dotenv from 'dotenv';
+import { createSmartLogger } from './utils/smartLogger.js';
 
 dotenv.config();
+
+const logger = createSmartLogger({
+  serviceName: process.env.LOG_SERVICE_NAME || 'mongo-bulk-edit-ui-server',
+  environment: process.env.NODE_ENV || 'development',
+  elasticsearchUrl: process.env.ELASTICSEARCH_URL || '',
+  indexName: process.env.ELASTICSEARCH_INDEX || 'app-logs',
+  apiKey: process.env.ELASTICSEARCH_API_KEY || '',
+  username: process.env.ELASTICSEARCH_USERNAME || '',
+  password: process.env.ELASTICSEARCH_PASSWORD || '',
+  captureConsole: process.env.LOG_CAPTURE_CONSOLE || 'true',
+  enableHttpLogging: process.env.LOG_HTTP_REQUESTS || 'true',
+  flushIntervalMs: process.env.LOG_FLUSH_INTERVAL_MS || 2000,
+  batchSize: process.env.LOG_BATCH_SIZE || 50,
+  maxQueueSize: process.env.LOG_MAX_QUEUE_SIZE || 1000,
+  requestTimeoutMs: process.env.LOG_REQUEST_TIMEOUT_MS || 4000
+});
 
 const app = express();
 const PORT = Number(process.env.PORT || 5050);
@@ -32,6 +49,7 @@ const connectDB = async () => {
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(logger.createHttpMiddleware());
 
 // Get all records
 app.get('/api/records', async (req, res) => {
@@ -120,4 +138,14 @@ connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`✓ Server running on http://localhost:${PORT}`);
   });
+});
+
+process.on('SIGINT', async () => {
+  await logger.stop();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  await logger.stop();
+  process.exit(0);
 });
