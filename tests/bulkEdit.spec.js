@@ -2,7 +2,7 @@
 import { test, expect } from '@playwright/test';
 
 // Configure baseURL for tests
-test.use({ baseURL: 'http://localhost:5174' });
+test.use({ baseURL: 'http://localhost:5173' });
 
 test.describe('Bulk Edit - Name Field', () => {
   
