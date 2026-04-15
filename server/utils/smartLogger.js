@@ -76,7 +76,7 @@ export class SmartLogger {
     }
 
     this.flushTimer = setInterval(() => {
-      this.flush().catch(() => {});
+      this.flush(true).catch(() => {});
     }, this.flushIntervalMs);
 
     if (typeof this.flushTimer.unref === 'function') {

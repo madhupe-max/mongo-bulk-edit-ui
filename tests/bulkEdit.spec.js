@@ -129,12 +129,19 @@ test.describe('Bulk Edit - Name Field', () => {
     const nameInput = page.getByRole('textbox', { name: 'New name' });
     await nameInput.fill(newName);
     
-    // Click Apply Updates button
-    await page.getByRole('button', { name: 'Apply Updates' }).click();
-    
-    // Wait for update to complete
-    await page.waitForTimeout(500);
-    
+    // Click Apply Updates button and wait for the bulk update API response
+    const [response] = await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/bulk/update') && resp.status() === 200),
+      page.getByRole('button', { name: 'Apply Updates' }).click(),
+    ]);
+
+    // Wait for the table to re-render with updated data
+    await page.waitForFunction(
+      (name) => document.body.innerText.includes(name),
+      newName,
+      { timeout: 10000 }
+    );
+
     // Verify the names are updated in the table (use .first() to get first occurrence)
     const updatedCell = page.locator(`text=${newName}`);
     await expect(updatedCell.first()).toBeVisible();
@@ -154,12 +161,19 @@ test.describe('Bulk Edit - Name Field', () => {
     const newName = 'Test Bulk Name Update';
     await page.getByRole('textbox', { name: 'New name' }).fill(newName);
     
-    // Apply updates
-    await page.getByRole('button', { name: 'Apply Updates' }).click();
-    
-    // Wait for update
-    await page.waitForTimeout(500);
-    
+    // Apply updates and wait for the API response
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/bulk/update') && resp.status() === 200),
+      page.getByRole('button', { name: 'Apply Updates' }).click(),
+    ]);
+
+    // Wait for the table to re-render with updated data
+    await page.waitForFunction(
+      (name) => document.body.innerText.includes(name),
+      newName,
+      { timeout: 10000 }
+    );
+
     // Verify updated records have the new name (verify at least one instance exists)
     const updatedNameCell = page.locator(`text=${newName}`);
     await expect(updatedNameCell.first()).toBeVisible();
@@ -182,9 +196,7 @@ test.describe('Bulk Edit - Name Field', () => {
     const formHeading = page.getByRole('heading', { level: 3 });
     await expect(formHeading).toBeVisible();
     
-    // Click Cancel button (use exact match to distinguish from "Cancel Bulk Edit")
-    const buttons = page.locator('button:has-text("Cancel")');
-    const cancelButton = buttons.locator('text=/^Cancel$/', { exact: true });
+    // Click Cancel button (exact match to distinguish from "Cancel Bulk Edit")
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     
     // Verify form is hidden
@@ -255,12 +267,19 @@ test.describe('Bulk Edit - Name Field', () => {
     const nameInput = page.getByRole('textbox', { name: 'New name' });
     await nameInput.fill(specialName);
     
-    // Click Apply Updates
-    await page.getByRole('button', { name: 'Apply Updates' }).click();
-    
-    // Wait for update
-    await page.waitForTimeout(500);
-    
+    // Click Apply Updates and wait for the API response
+    await Promise.all([
+      page.waitForResponse(resp => resp.url().includes('/bulk/update') && resp.status() === 200),
+      page.getByRole('button', { name: 'Apply Updates' }).click(),
+    ]);
+
+    // Wait for the table to re-render with the updated name
+    await page.waitForFunction(
+      (name) => document.body.innerText.includes(name),
+      specialName,
+      { timeout: 10000 }
+    );
+
     // Verify the name with special characters is displayed
     const updatedName = page.locator(`text=${specialName}`);
     await expect(updatedName).toBeVisible();
