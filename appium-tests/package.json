@@ -1,0 +1,22 @@
+{
+  "name": "mongo-bulk-edit-appium-tests",
+  "version": "1.0.0",
+  "description": "Appium tests for Mongo Bulk Edit iOS app",
+  "scripts": {
+    "test": "wdio run wdio.conf.js",
+    "test:ios": "wdio run wdio.conf.js --suite ios"
+  },
+  "dependencies": {
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@wdio/cli": "^8.39.0",
+    "@wdio/local-runner": "^8.39.0",
+    "@wdio/mocha-framework": "^8.39.0",
+    "@wdio/spec-reporter": "^8.39.0",
+    "appium": "^2.11.2",
+    "appium-xcuitest-driver": "^7.21.1",
+    "chai": "^4.4.1",
+    "wdio-appium-service": "^0.2.3"
+  }
+}
